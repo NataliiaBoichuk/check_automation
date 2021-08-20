@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 class BasePageLocators:
     POPULAR_ITEMS = (By.CLASS_NAME, 'products')
     CURRENCY = (By.CLASS_NAME, '_gray-darker')
-    CURRENCY_DROPDOWN = (By.CSS_SELECTOR, 'div.currency-selector a[data-target="#"]')
+    CURRENCY_DROPDOWN = (By.CSS_SELECTOR, '.currency-selector a.hidden-sm-down')
     CHOOSE_DOLLAR = (By.XPATH, '//a[text()="USD $"]')
     LIST_PRICES_POPULAR_ITEMS = (By.CLASS_NAME, 'price')
     SEARCH_INPUT = (By.NAME, 's')
