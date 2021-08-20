@@ -1,5 +1,4 @@
 import logging as log
-import time
 from babel.numbers import parse_decimal
 from selenium.webdriver.common.by import By
 from .base_page import BasePage
@@ -46,10 +45,9 @@ class SearchResults(BasePage):
     def should_be_sorted_desc_price(self):
         prices = []
 
+        self.sorting_desc_price()
         log.info("Before find list with all prices of items")
         prices_items = self.wait_for_all_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
-
-        self.sorting_desc_price()
 
         for index in range(len(prices_items)):
 
@@ -115,5 +113,3 @@ class SearchResults(BasePage):
                 log.info("Before assert the value of the price is correct")
                 assert float("{:.2f}".format(current_price)) == round(float(regular_price) * (100 - discount) / 100, 2), \
                     f"The price is not correct in the item with regular price -{regular_price} and discount - {discount}"
-
-
