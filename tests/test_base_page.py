@@ -1,4 +1,3 @@
-import pytest
 from check_automation.pages.base_page import BasePage
 
 
