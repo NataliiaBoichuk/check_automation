@@ -1,4 +1,3 @@
-import time
 from check_automation.pages.search_result_page import SearchResults
 
 
@@ -20,7 +19,6 @@ class TestSearchResults:
         page.choose_dollar()
 
         page.go_to_search_result(TestSearchResults.search_word)
-        time.sleep(1)
 
         page.should_be_current_currency()
 
