@@ -1,5 +1,7 @@
-import time
 import logging as log
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from .locators import BasePageLocators
 
 
@@ -7,37 +9,74 @@ class BasePage:
     def __init__(self, browser, url):
         self.browser = browser
         self.url = url
+        self.web_driver_wait = WebDriverWait(self.browser, timeout=10)
 
     def open(self):
         self.browser.get(self.url)
         self.browser.maximize_window()
 
+    def wait_for_element(self, how, what, timeout=4):
+        try:
+            element = self.web_driver_wait.until(EC.presence_of_element_located((how, what)))
+        except TimeoutException:
+            return f"Element {what} not found during {timeout} sec"
+        return element
+
+    def wait_for_all_elements(self, how, what, timeout=4):
+        try:
+            self.wait_not_stale(how, what)
+            elements = self.web_driver_wait.until(EC.presence_of_all_elements_located((how, what)))
+        except TimeoutException:
+            return f"Element {what} not found during {timeout} sec"
+        return elements
+
+    def is_not_stale(self, webelement):
+        try:
+            webelement.is_enabled()
+        except StaleElementReferenceException:
+            return False
+        return True
+
+    def wait_not_stale(self, how, what):
+        elements = self.web_driver_wait.until(EC.presence_of_all_elements_located((how, what)))
+        for el in elements:
+            self.web_driver_wait.until(lambda _: self.is_not_stale(el))
+
+    def _wait_inner_elements(self, webelement, how, what):
+        elements = webelement.find_elements(how, what)
+        for el in elements:
+            self.web_driver_wait.until(lambda _: self.is_not_stale(el))
+        return elements
+
+    def wait_inner_elements(self, webelement, how, what):
+        return self.web_driver_wait.until(lambda _: self._wait_inner_elements(webelement, how, what))
+
     def choose_dollar(self):
         log.info("before finding and clicking on the dropdown button of currencies")
-        self.browser.find_element(*BasePageLocators.CURRENCY_DROPDOWN).click()
-        time.sleep(2)
+        self.wait_for_element(*BasePageLocators.CURRENCY_DROPDOWN).click()
 
         log.info("before finding and clicking on the dollar currency button")
-        self.browser.find_element(*BasePageLocators.CHOOSE_DOLLAR).click()
+        self.browser.implicitly_wait(2)
+        self.wait_for_element(*BasePageLocators.CHOOSE_DOLLAR).click()
 
     def go_to_search_result(self, enter_word):
         log.info("before finding search field")
-        search_field = self.browser.find_element(*BasePageLocators.SEARCH_INPUT)
+        search_field = self.wait_for_element(*BasePageLocators.SEARCH_INPUT)
 
         log.info(f"before entering a {enter_word} in the search field")
         search_field.send_keys(str(enter_word))
 
         log.info("before clicking a submit button and redirect to search page")
-        self.browser.find_element(*BasePageLocators.SEARCH_INPUT_BTN).click()
-        time.sleep(2)
+        self.wait_for_element(*BasePageLocators.SEARCH_INPUT_BTN).click()
 
     def should_be_current_currency(self):
         log.info("Before find the currency of the site")
-        currency = self.browser.find_element(*BasePageLocators.CURRENCY).text.split(' ')[-1]
+        currency = self.wait_for_element(*BasePageLocators.CURRENCY).text.split(' ')[-1]
 
         log.info("before find a list of popular products")
-        items_prices = self.browser.find_elements(*BasePageLocators.LIST_PRICES_POPULAR_ITEMS)
+        items_prices = self.wait_for_all_elements(*BasePageLocators.LIST_PRICES_POPULAR_ITEMS)
+
         for index, el in enumerate(items_prices):
             log.info("before assert the currency of the site and the currency of the product")
-            assert currency == el.text.split()[-1], f"The currency of item number {index+1} does not match the current"
-
+            assert currency in el.text, f"The currency of item number {index + 1} is {el.text} " \
+                                        f"and does not match the current {currency}"

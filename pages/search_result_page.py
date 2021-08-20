@@ -1,61 +1,67 @@
 import logging as log
-import time
 from babel.numbers import parse_decimal
+from selenium.webdriver.common.by import By
 from .base_page import BasePage
 from .locators import SearchResultsPageLocators, BasePageLocators
 
 
 class SearchResults(BasePage):
     def sorting_desc_price(self):
-        self.browser.find_element(*SearchResultsPageLocators.FILTER_DROPDOWN).click()
-        self.browser.find_element(*SearchResultsPageLocators.SORTING_PRICE_DESC).click()
-        time.sleep(2)
+        dropdown = self.wait_for_element(*SearchResultsPageLocators.FILTER_DROPDOWN)
+        dropdown.click()
+        select_desc = self.wait_for_element(*SearchResultsPageLocators.SORTING_PRICE_DESC)
+        select_desc.click()
 
     def should_be_total_items(self):
-        time.sleep(2)
         log.info("Before find element with count of items")
-        assert self.browser.find_element(*SearchResultsPageLocators.ITEMS_NUMBER).text, \
+        assert self.wait_for_element(*SearchResultsPageLocators.ITEMS_NUMBER).text, \
             "The text with the number of items - not found"
-        total_text = self.browser.find_element(*SearchResultsPageLocators.ITEMS_NUMBER).text
+
+        total_text = self.wait_for_element(*SearchResultsPageLocators.ITEMS_NUMBER).text
+
         log.info("Before find list of items")
-        list_items = self.browser.find_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
+        list_items = self.wait_for_all_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
+
         log.info('Before assert element with count items and exactly amount of items')
         assert len(list_items) == int(total_text.split(' ')[-1][:-1])
 
     def should_be_current_currency(self):
         log.info("Before find current currency on main page")
-        currency = self.browser.find_element(*BasePageLocators.CURRENCY).text.split(' ')[-1]
+        currency = self.wait_for_element(*BasePageLocators.CURRENCY).text.split(' ')[-1]
+
         log.info("Before find list with prices of items")
-        items_prices = self.browser.find_elements(*SearchResultsPageLocators.LIST_PRICES_ITEMS)
+        items_prices = self.wait_for_all_elements(*SearchResultsPageLocators.LIST_PRICES_ITEMS)
+
         for index, el in enumerate(items_prices):
             log.info("Before assert current currency and items currency")
-            assert currency == el.text.split()[-1], \
-                f"The currency of item number {index + 1} is {el.text.split()[-1]} " \
-                f"and does not match the current {currency}"
+            assert currency in el.text, f"The currency of item number {index + 1} is {el.text} " \
+                                        f"and does not match the current {currency}"
 
     def should_be_sorted_desc_price(self):
         prices = []
+        self.sorting_desc_price()
+
         log.info("Before find list with all prices of items")
-        prices_items = self.browser.find_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
+        prices_items = self.wait_for_all_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
 
         for el in prices_items:
             log.info("Before find the number of prices of an item")
-            prices_item = el.find_elements_by_tag_name('span')
+            prices_item = self.wait_inner_elements(el, By.TAG_NAME, 'span')
+
             if len(prices_item) == 1:
                 prices.append(parse_decimal(prices_item[0].text.split('&')[0][:-2], locale='de'))
             else:
                 log.info("Before find a regular price for a product")
                 regular_price = el.find_element(*SearchResultsPageLocators.ITEM_REGULAR_PRICE).text
+
                 prices.append(parse_decimal(regular_price.split('&')[0][:-2], locale='de'))
 
         for index in range(1, len(prices)):
-            if prices[index] > prices[index-1]:
-                return False
-        return True
+            assert prices[index] <= prices[index - 1], f"Price item {index+1} more as price item {index}"
 
     def should_be_have_three_el_discount_items(self):
         log.info("Before find list with all prices of items")
-        prices_items = self.browser.find_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
+        prices_items = self.wait_for_all_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
 
         for el in prices_items:
             log.info("Before find the number of prices of an item")
@@ -65,16 +71,18 @@ class SearchResults(BasePage):
                 log.info("Before assert a regular price is displayed on the item")
                 assert el.find_element(*SearchResultsPageLocators.ITEM_REGULAR_PRICE).is_displayed(), \
                     'The product has no price without a discount'
+
                 log.info("Before assert a price is displayed on the item")
                 assert el.find_element(*SearchResultsPageLocators.ITEM_DISCOUNT_PERCENTAGE).is_displayed(), \
                     'The product has no discount'
+
                 log.info("Before assert a discount is displayed on the item")
                 assert el.find_element(*SearchResultsPageLocators.ITEM_PRICE).is_displayed(), \
                     'The product has no price'
 
     def should_be_calculated_correctly_with_discount(self):
         log.info("Before find list with all prices of items")
-        prices_items = self.browser.find_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
+        prices_items = self.wait_for_all_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
 
         for el in prices_items:
             log.info("Before find the number of prices of an item")
