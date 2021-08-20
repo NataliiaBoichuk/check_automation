@@ -1,5 +1,4 @@
 import time
-import pytest
 from check_automation.pages.search_result_page import SearchResults
 
 
@@ -12,7 +11,6 @@ class TestSearchResults:
         page.open()
 
         page.go_to_search_result(TestSearchResults.search_word)
-        time.sleep(1)
 
         page.should_be_total_items()
 
@@ -32,7 +30,6 @@ class TestSearchResults:
         page.choose_dollar()
 
         page.go_to_search_result(TestSearchResults.search_word)
-        page.sorting_desc_price()
 
         page.should_be_sorted_desc_price()
 
@@ -42,7 +39,6 @@ class TestSearchResults:
         page.choose_dollar()
 
         page.go_to_search_result(TestSearchResults.search_word)
-        time.sleep(1)
 
         page.should_be_have_three_el_discount_items()
 
@@ -52,6 +48,5 @@ class TestSearchResults:
         page.choose_dollar()
 
         page.go_to_search_result(TestSearchResults.search_word)
-        time.sleep(1)
 
         page.should_be_calculated_correctly_with_discount()
