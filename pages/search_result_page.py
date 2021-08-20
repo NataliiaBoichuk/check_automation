@@ -1,25 +1,31 @@
 import logging as log
+import time
 from babel.numbers import parse_decimal
 from selenium.webdriver.common.by import By
 from .base_page import BasePage
 from .locators import SearchResultsPageLocators, BasePageLocators
 
 
+def take_price(el):
+    return el.text.split('&')[0][:-2]
+
+
 class SearchResults(BasePage):
+
     def sorting_desc_price(self):
-        dropdown = self.wait_for_element(*SearchResultsPageLocators.FILTER_DROPDOWN)
-        dropdown.click()
-        select_desc = self.wait_for_element(*SearchResultsPageLocators.SORTING_PRICE_DESC)
-        select_desc.click()
+        self.wait_for_element(*SearchResultsPageLocators.FILTER_DROPDOWN).click()
+        self.wait_for_element(*SearchResultsPageLocators.SORTING_PRICE_DESC).click()
 
     def should_be_total_items(self):
         log.info("Before find element with count of items")
         assert self.wait_for_element(*SearchResultsPageLocators.ITEMS_NUMBER).text, \
             "The text with the number of items - not found"
 
+        # return "Товаров: x.", where 'x' is count of items
         total_text = self.wait_for_element(*SearchResultsPageLocators.ITEMS_NUMBER).text
 
         log.info("Before find list of items")
+        # return list with all items on page
         list_items = self.wait_for_all_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
 
         log.info('Before assert element with count items and exactly amount of items')
@@ -39,25 +45,31 @@ class SearchResults(BasePage):
 
     def should_be_sorted_desc_price(self):
         prices = []
-        self.sorting_desc_price()
 
         log.info("Before find list with all prices of items")
         prices_items = self.wait_for_all_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
 
-        for el in prices_items:
+        self.sorting_desc_price()
+
+        for index in range(len(prices_items)):
+
             log.info("Before find the number of prices of an item")
-            prices_item = self.wait_inner_elements(el, By.TAG_NAME, 'span')
+            div_prices = self.wait_for_element(By.CSS_SELECTOR,
+                                               f'article:nth-child({index + 1}) .product-price-and-shipping')
+            prices_item = self.wait_inner_elements(div_prices, By.TAG_NAME, 'span')
 
-            if len(prices_item) == 1:
-                prices.append(parse_decimal(prices_item[0].text.split('&')[0][:-2], locale='de'))
-            else:
+            if len(prices_item) > 1:
                 log.info("Before find a regular price for a product")
-                regular_price = el.find_element(*SearchResultsPageLocators.ITEM_REGULAR_PRICE).text
+                regular_price = div_prices.find_element(*SearchResultsPageLocators.ITEM_REGULAR_PRICE)
+                prices.append(parse_decimal(take_price(regular_price), locale='de'))
 
-                prices.append(parse_decimal(regular_price.split('&')[0][:-2], locale='de'))
+            else:
+                log.info("Before find a simple price for a product")
+                simple_price = div_prices.find_element(*SearchResultsPageLocators.ITEM_PRICE)
+                prices.append(parse_decimal(take_price(simple_price), locale='de'))
 
-        for index in range(1, len(prices)):
-            assert prices[index] <= prices[index - 1], f"Price item {index+1} more as price item {index}"
+        for i in range(1, len(prices)):
+            assert float(prices[i]) <= float(prices[i - 1]), f"Price item {i + 1} is higher than price item {i}"
 
     def should_be_have_three_el_discount_items(self):
         log.info("Before find list with all prices of items")
@@ -103,3 +115,5 @@ class SearchResults(BasePage):
                 log.info("Before assert the value of the price is correct")
                 assert float("{:.2f}".format(current_price)) == round(float(regular_price) * (100 - discount) / 100, 2), \
                     f"The price is not correct in the item with regular price -{regular_price} and discount - {discount}"
+
+
