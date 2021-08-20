@@ -17,46 +17,45 @@ class BasePage:
 
     def wait_for_element(self, how, what, timeout=4):
         try:
-            element = self.web_driver_wait.until(EC.presence_of_element_located((how, what)))
+            self.wait_not_stale(how, what)
+            element = self.web_driver_wait.until(EC.visibility_of_element_located((how, what)))
         except TimeoutException:
-            return f"Element {what} not found during {timeout} sec"
+            return
         return element
 
     def wait_for_all_elements(self, how, what, timeout=4):
         try:
-            self.wait_not_stale(how, what)
-            elements = self.web_driver_wait.until(EC.presence_of_all_elements_located((how, what)))
+            elements = self.web_driver_wait.until(EC.visibility_of_all_elements_located((how, what)))
         except TimeoutException:
-            return f"Element {what} not found during {timeout} sec"
+            return
         return elements
 
-    def is_not_stale(self, webelement):
+    def is_not_stale(self, web_element):
         try:
-            webelement.is_enabled()
+            web_element.is_enabled()
         except StaleElementReferenceException:
             return False
         return True
 
     def wait_not_stale(self, how, what):
-        elements = self.web_driver_wait.until(EC.presence_of_all_elements_located((how, what)))
+        elements = self.web_driver_wait.until(EC.visibility_of_all_elements_located((how, what)))
         for el in elements:
             self.web_driver_wait.until(lambda _: self.is_not_stale(el))
 
-    def _wait_inner_elements(self, webelement, how, what):
-        elements = webelement.find_elements(how, what)
+    def _wait_inner_elements(self, web_element, how, what):
+        elements = web_element.find_elements(how, what)
         for el in elements:
             self.web_driver_wait.until(lambda _: self.is_not_stale(el))
         return elements
 
-    def wait_inner_elements(self, webelement, how, what):
-        return self.web_driver_wait.until(lambda _: self._wait_inner_elements(webelement, how, what))
+    def wait_inner_elements(self, web_element, how, what):
+        return self.web_driver_wait.until(lambda _: self._wait_inner_elements(web_element, how, what))
 
     def choose_dollar(self):
         log.info("before finding and clicking on the dropdown button of currencies")
         self.wait_for_element(*BasePageLocators.CURRENCY_DROPDOWN).click()
 
         log.info("before finding and clicking on the dollar currency button")
-        self.browser.implicitly_wait(2)
         self.wait_for_element(*BasePageLocators.CHOOSE_DOLLAR).click()
 
     def go_to_search_result(self, enter_word):
