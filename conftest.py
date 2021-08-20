@@ -38,7 +38,7 @@ class MyListener(AbstractEventListener):
         log.exception(f"{exception}")
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def browser(request):
     driver = webdriver.Chrome()
     browser = EventFiringWebDriver(driver, MyListener())
