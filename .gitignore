@@ -131,7 +131,7 @@ dmypy.json
 # Pytest cache
 .pytest_cache
 .pytest_cache/
-tests/.pytest_cache
+src/tests/.pytest_cache
 
 # Windows env
 .idea/
