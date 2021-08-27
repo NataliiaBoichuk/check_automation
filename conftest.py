@@ -38,9 +38,21 @@ class MyListener(AbstractEventListener):
         log.exception(f"{exception}")
 
 
+def pytest_addoption(parser):
+    parser.addoption('--browser', action='store', default='chrome',
+                     help="Choose browser: chrome or firefox")
+
+
 @pytest.fixture(autouse=True)
 def browser(request):
-    driver = webdriver.Chrome()
+    browser_name = request.config.getoption('browser')
+
+    if browser_name == 'firefox':
+        driver = webdriver.Firefox()
+    else:
+        driver = webdriver.Chrome()
+
     browser = EventFiringWebDriver(driver, MyListener())
+
     yield browser
     browser.quit()
