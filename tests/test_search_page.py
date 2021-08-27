@@ -1,4 +1,4 @@
-from check_automation.pages.search_result_page import SearchResults
+from ..pages.search_result_page import SearchResults
 import allure
 
 

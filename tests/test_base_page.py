@@ -1,5 +1,5 @@
 import allure
-from check_automation.pages.base_page import BasePage
+from ..pages.base_page import BasePage
 
 
 @allure.description("this test checks if the price of items in the 'Popular Items' section "
