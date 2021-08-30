@@ -2,6 +2,8 @@ import pytest
 import logging as log
 from selenium import webdriver
 from selenium.webdriver.support.events import EventFiringWebDriver, AbstractEventListener
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 
 
 log.basicConfig(filename='test.log',
@@ -48,9 +50,9 @@ def browser(request):
     browser_name = request.config.getoption('browser')
 
     if browser_name == 'firefox':
-        driver = webdriver.Firefox()
+        driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
     else:
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(ChromeDriverManager().install())
 
     browser = EventFiringWebDriver(driver, MyListener())
 
