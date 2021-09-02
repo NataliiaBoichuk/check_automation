@@ -50,9 +50,9 @@ def browser(request):
     browser_name = request.config.getoption('browser')
 
     if browser_name == 'firefox':
-        driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
+        driver = webdriver.Firefox(executable_path=GeckoDriverManager(version='91.0.2').install())
     else:
-        driver = webdriver.Chrome(ChromeDriverManager().install())
+        driver = webdriver.Chrome(ChromeDriverManager(version='92.0.4515.159').install())
 
     browser = EventFiringWebDriver(driver, MyListener())
 
