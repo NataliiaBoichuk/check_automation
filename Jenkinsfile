@@ -1,11 +1,10 @@
 pipeline {
-    agent none
+    agent {
+        docker { image 'python:3-alpine'}
+    }
 
     stages {
         stage('Build') {
-            agent {
-                docker { image 'python:3-alpine'}
-            }
             steps {
                 sh 'python -m venv env'
                 sh 'source env/bin/activate'
@@ -13,9 +12,6 @@ pipeline {
             }
         }
         stage('Test') {
-            agent {
-                docker { image 'qnib/pytest'}
-            }
             steps {
                 sh 'mkdir -p ./allure-results'
                 sh 'python -m pytest -v --reruns 2 --alluredir=./allure-results ./src/tests/'
