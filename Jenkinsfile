@@ -7,9 +7,9 @@ pipeline {
                 docker { image 'python:3-alpine'}
             }
             steps {
-                sh 'python -m venv env'
-                sh 'call ./env/Scripts/activate.bat'
-                sh 'pip install -r requirements.txt'
+                bat 'python -m venv env'
+                bat 'call ./env/Scripts/activate.bat'
+                bat 'pip install -r requirements.txt'
             }
         }
         stage('Test') {
@@ -17,8 +17,8 @@ pipeline {
                 docker { image 'qnib/pytest'}
             }
             steps {
-                sh 'mkdir -p ./allure-results'
-                sh 'python -m pytest -v --reruns 2 --alluredir=./allure-results ./src/tests/'
+                bat 'mkdir -p ./allure-results'
+                bat 'python -m pytest -v --reruns 2 --alluredir=./allure-results ./src/tests/'
             }
         }
         stage('reports') {
