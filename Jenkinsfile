@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent none
 
     stages {
         stage('Build') {
@@ -20,9 +20,17 @@ pipeline {
                 sh 'mkdir -p ./allure-results'
                 sh 'python -m pytest -v --reruns 2 --alluredir=./allure-results ./src/tests/'
             }
-            post {
-                always{
-                allure './allure-results'
+        }
+        stage('reports') {
+            steps {
+                script {
+                    allure([
+                        includeProperties: false,
+                        jdk: '',
+                        properties: [],
+                        reportBuildPolicy: 'ALWAYS',
+                        results: [[path: 'allure-results']]
+                    ])
                 }
             }
         }
