@@ -8,7 +8,7 @@ pipeline {
             }
             steps {
                 sh 'python -m venv env'
-                sh 'call ./env/Scripts/activate.bat'
+                sh 'source env/bin/activate'
                 sh 'pip install -r requirements.txt'
             }
         }
