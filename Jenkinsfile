@@ -13,7 +13,7 @@ pipeline {
         }
         stage('Test') {
             agent {
-                docker { image 'selenium/standalone-chrome'}
+                docker { image 'selenium/standalone-chrome:93.0-20210902'}
             }
             steps {
                 sh 'mkdir -p ./allure-results'
