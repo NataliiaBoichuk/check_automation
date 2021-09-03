@@ -12,6 +12,9 @@ pipeline {
             }
         }
         stage('Test') {
+            agent {
+                docker { image 'selenium/standalone-chrome'}
+            }
             steps {
                 sh 'mkdir -p ./allure-results'
                 sh 'python -m pytest -v --reruns 2 --alluredir=./allure-results ./src/tests/'
