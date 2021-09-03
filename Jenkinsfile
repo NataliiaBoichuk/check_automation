@@ -9,12 +9,10 @@ pipeline {
                 sh 'python -m venv env'
                 sh 'source env/bin/activate'
                 sh 'pip install -r requirements.txt'
+                sh 'pip install chromedriver-binary'
             }
         }
         stage('Test') {
-            agent {
-                docker { image 'selenium/standalone-chrome:93.0-20210902'}
-            }
             steps {
                 sh 'mkdir -p ./allure-results'
                 sh 'python -m pytest -v --reruns 2 --alluredir=./allure-results ./src/tests/'
