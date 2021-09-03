@@ -52,7 +52,7 @@ def browser(request):
     if browser_name == 'firefox':
         driver = webdriver.Firefox(executable_path=GeckoDriverManager(version='91.0.2').install())
     else:
-        driver = webdriver.Chrome(executable_path='//c/chromedriver')
+        driver = webdriver.Chrome(executable_path='/usr/local/bin')
 
     browser = EventFiringWebDriver(driver, MyListener())
 
