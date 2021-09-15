@@ -36,6 +36,7 @@ class TestSearchResults:
         page.choose_dollar()
 
         page.go_to_search_result(TestSearchResults.search_word)
+        page.sorting_desc_price()
 
         page.should_be_sorted_desc_price()
 

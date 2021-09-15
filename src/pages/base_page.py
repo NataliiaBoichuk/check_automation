@@ -1,5 +1,5 @@
 import logging as log
-from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from .locators import BasePageLocators
@@ -9,7 +9,8 @@ class BasePage:
     def __init__(self, browser, url):
         self.browser = browser
         self.url = url
-        self.web_driver_wait = WebDriverWait(self.browser, timeout=15)
+        self.web_driver_wait = WebDriverWait(self.browser, timeout=15,
+                                             ignored_exceptions=(NoSuchElementException,StaleElementReferenceException,))
 
     def open(self):
         self.browser.get(self.url)
@@ -41,15 +42,6 @@ class BasePage:
         elements = self.web_driver_wait.until(EC.visibility_of_all_elements_located((how, what)))
         for el in elements:
             self.web_driver_wait.until(lambda _: self.is_not_stale(el))
-
-    def _wait_inner_elements(self, web_element, how, what):
-        elements = web_element.find_elements(how, what)
-        for el in elements:
-            self.web_driver_wait.until(lambda _: self.is_not_stale(el))
-        return elements
-
-    def wait_inner_elements(self, web_element, how, what):
-        return self.web_driver_wait.until(lambda _: self._wait_inner_elements(web_element, how, what))
 
     def choose_dollar(self):
         log.info("Looking for and clicking on the dropdown button of currencies")

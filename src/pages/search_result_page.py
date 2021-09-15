@@ -3,6 +3,7 @@ from babel.numbers import parse_decimal
 from selenium.webdriver.common.by import By
 from .base_page import BasePage
 from .locators import SearchResultsPageLocators
+from selenium.webdriver.support import expected_conditions as EC
 
 
 def give_price(el, locale='de'):
@@ -19,6 +20,7 @@ class SearchResults(BasePage):
         self.wait_for_element(*SearchResultsPageLocators.FILTER_DROPDOWN).click()
         log.info("Looking for and clicking on the sort by decrease in price button in the dropdown menu")
         self.wait_for_element(*SearchResultsPageLocators.SORTING_PRICE_DESC).click()
+        self.web_driver_wait.until(EC.url_contains('price.desc&s'))
 
     def should_be_total_items(self):
         log.info("Checking the availability of text by the number of search results")
@@ -55,8 +57,6 @@ class SearchResults(BasePage):
         # list with prices for comparison
         prices = []
 
-        self.sorting_desc_price()
-
         # return a list of web elements that include a list of prices for the product
         log.info("Searching for a list of prices for item")
         prices_items = self.wait_for_all_elements(*SearchResultsPageLocators.LIST_DIV_PRICES_ITEMS)
@@ -68,7 +68,7 @@ class SearchResults(BasePage):
                                                    f'article:nth-child({index + 1}) .product-price-and-shipping')
 
             log.info("Looking for the number of prices for item")
-            prices_item = self.wait_inner_elements(div_prices, By.TAG_NAME, 'span')
+            prices_item = self.web_driver_wait.until(lambda d: div_prices.find_elements(By.TAG_NAME, 'span'))
 
             if len(prices_item) > 1:
                 log.info("Looking for the regular price(without discount) of the product")
